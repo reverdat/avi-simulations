@@ -2,25 +2,19 @@
 install.packages("future")
 library(mixtureSPRT)
 library(future)
+library(future.apply)
 
 source("simulation.R")
-plan(multisession)
+plan(multicore)
 set.seed(123)
 
-simulations <- vector(mode = "list", length = 4)
-for(i in 1:4){
-  simulations[[i]] <- future(
-    {Simulation.simulate(B = 10000, M = 10^i, alpha = 0.01, sigma = sqrt(0.01))}
-  )
-}
+#simulations <- vector(mode = "list", length = 4)
+
+
+simulations <- future_lapply(1:3, function(i) {
+  params <- Parameters(B = 100, M = 10^i, alpha = 0.05, mean_theta = 0.01, sigma_theta = sqrt(0.01)) # nolint
+  Simulation.simulate(params = params)
+}, future.seed = TRUE)
 
 output <- value(simulations)
 
-sim$length_profile/sim$n_star_profile
-power.t.test(n=NULL, 
-             delta = 0.0006, 
-             sd = sqrt(2)/2, 
-             type="two.sample",
-             alternative = "two.sided",
-             power = 0.421, 
-             sig.level = 0.05)
