@@ -1,6 +1,7 @@
 install.packages("future")
 install.packages("comprehenr")
 install.packages("remotes")
+install.packages("latex2exp")
 remotes::install_github("erik-stenberg/mixtureSPRT")
 
 library(comprehenr)
