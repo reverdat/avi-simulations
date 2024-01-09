@@ -17,7 +17,7 @@ Parameters <- function(B, M, alpha, mean_theta, sigma_theta) {
   return(params)
 }
 
-Simulation <- function(params, power_profile, length_profile, ump_profile) {
+Simulation <- function(params, power_profile, lengths, length_profile, ump_profile) {
   # ----------------------------------------------------
   # Simulation results object. 
   # 
@@ -28,7 +28,7 @@ Simulation <- function(params, power_profile, length_profile, ump_profile) {
   #   ump_profile - Sample size/M corresponding to the UMP test with same power as power_profile # nolint
   # ----------------------------------------------------
   
-  sim <- list(params = params, power_profile = power_profile, length_profile = length_profile, ump_profile = ump_profile) # nolint: line_length_linter.
+  sim <- list(params = params, power_profile = power_profile, lengths = lengths, length_profile = length_profile, ump_profile = ump_profile) # nolint: line_length_linter.
   class(sim) <- "Simulation"
   return(sim)
 }
@@ -48,14 +48,15 @@ Simulation.simulate <- function(params) {
   for(b in 1:B) {
     theta <- rnorm(n = 1, mean = mean_theta, sd = sigma_theta)[1]
     thetas <- append(thetas, theta)
-    m <- mSPRT.default(x = rnorm(M, mean = 0, sd = sqrt(2)/2),
-                        y = rnorm(M, mean = theta, sd = sqrt(2)/2),
-                        sigma = sqrt(2)/2,
+    m <- mSPRT.default(x = rnorm(M, mean = theta, sd = sqrt(2)/2),
+                        y = rnorm(M, mean = 0, sd = sqrt(2)/2),
+                        sigma =  sqrt(2)/2,
                         tau = tau,
                         theta = 0,
                         distribution = "normal",
                         alpha = alpha,
                         useCpp = T)
+
     if (m$decision == "Accept H1"){
       rejections <- append(rejections, 1)
       lengths <- append(lengths, m$n.rejection)
@@ -69,13 +70,14 @@ Simulation.simulate <- function(params) {
   n_star <- power.t.test(n=NULL, 
                delta = mean_theta, 
                sd = sqrt(2)/2, 
-               type="two.sample",
+               type="one.sample",
                alternative = "two.sided",
                power = pow, 
                sig.level = alpha)
+  print(n_star$n)
   ump_profile <- min(n_star$n, M)/as.numeric(M)
 
-  return(Simulation(params = params, power = pow, length = len, ump_profile = ump_profile)) # nolint
+  return(Simulation(params = params, power_profile = pow, lengths = lengths, length_profile = len, ump_profile = ump_profile)) # nolint
 }
 
 
